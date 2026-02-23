@@ -4,10 +4,9 @@ const pdfParse = require("pdf-parse");
 const fs = require("fs");
 const path = require("path");
 
-
-// =====================================
-// GET ALL STUDENTS
-// =====================================
+// ============================
+// GET STUDENTS
+// ============================
 const getStudents = async (req, res) => {
   try {
     const keyword = req.query.college
@@ -18,16 +17,15 @@ const getStudents = async (req, res) => {
       createdAt: -1,
     });
 
-    res.json(students);
+    res.status(200).json(students);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
-
-// =====================================
-// CREATE STUDENT / IMPORT FILE
-// =====================================
+// ============================
+// CREATE STUDENT
+// ============================
 const createStudent = async (req, res) => {
   try {
     const { name, college, department, website } = req.body;
@@ -36,7 +34,6 @@ const createStudent = async (req, res) => {
     const areFieldsFilled =
       name && college && department && website;
 
-    // ❌ If nothing provided
     if (!isFileUploaded && !areFieldsFilled) {
       return res.status(400).json({
         message:
@@ -44,9 +41,9 @@ const createStudent = async (req, res) => {
       });
     }
 
-    // =====================================
-    // IF FILE UPLOADED
-    // =====================================
+    // ============================
+    // FILE UPLOAD
+    // ============================
     if (req.file) {
       const filePath = path.join(
         __dirname,
@@ -58,9 +55,7 @@ const createStudent = async (req, res) => {
         req.file.originalname
       ).toLowerCase();
 
-      // ===============================
-      // 📊 HANDLE EXCEL
-      // ===============================
+      // Excel
       if (ext === ".xlsx" || ext === ".xls") {
         const workbook = XLSX.readFile(filePath);
         const sheetName = workbook.SheetNames[0];
@@ -74,7 +69,6 @@ const createStudent = async (req, res) => {
           });
         }
 
-        // Validate required columns
         const requiredColumns = [
           "name",
           "college",
@@ -90,23 +84,19 @@ const createStudent = async (req, res) => {
 
         if (missingColumns.length > 0) {
           return res.status(400).json({
-            message: `Missing columns: ${missingColumns.join(
-              ", "
-            )}`,
+            message: `Missing columns: ${missingColumns.join(", ")}`,
           });
         }
 
         await Student.insertMany(data);
 
         return res.status(201).json({
-          message: "Excel data imported successfully",
+          message: "Excel imported successfully",
           totalInserted: data.length,
         });
       }
 
-      // ===============================
-      // 📄 HANDLE PDF
-      // ===============================
+      // PDF
       if (ext === ".pdf") {
         const pdfBuffer = fs.readFileSync(filePath);
         const pdfData = await pdfParse(pdfBuffer);
@@ -121,8 +111,7 @@ const createStudent = async (req, res) => {
 
         return res.status(201).json({
           message: "PDF uploaded successfully",
-          extractedPreview:
-            pdfData.text.substring(0, 500),
+          preview: pdfData.text.substring(0, 300),
           student,
         });
       }
@@ -132,9 +121,9 @@ const createStudent = async (req, res) => {
       });
     }
 
-    // =====================================
+    // ============================
     // NORMAL FORM SUBMISSION
-    // =====================================
+    // ============================
     const student = await Student.create({
       name,
       college,
@@ -152,10 +141,9 @@ const createStudent = async (req, res) => {
   }
 };
 
-
-// =====================================
+// ============================
 // UPDATE STUDENT
-// =====================================
+// ============================
 const updateStudent = async (req, res) => {
   try {
     const student = await Student.findById(req.params.id);
@@ -179,8 +167,7 @@ const updateStudent = async (req, res) => {
     }
 
     const updated = await student.save();
-
-    res.json(updated);
+    res.status(200).json(updated);
   } catch (error) {
     res.status(500).json({
       message: error.message,
@@ -188,10 +175,9 @@ const updateStudent = async (req, res) => {
   }
 };
 
-
-// =====================================
+// ============================
 // DELETE STUDENT
-// =====================================
+// ============================
 const deleteStudent = async (req, res) => {
   try {
     const student = await Student.findById(
@@ -204,7 +190,6 @@ const deleteStudent = async (req, res) => {
       });
     }
 
-    // Delete file from uploads folder
     if (student.file) {
       const filePath = path.join(
         __dirname,
@@ -219,7 +204,7 @@ const deleteStudent = async (req, res) => {
 
     await student.deleteOne();
 
-    res.json({
+    res.status(200).json({
       message: "Student deleted successfully",
     });
   } catch (error) {
@@ -228,7 +213,6 @@ const deleteStudent = async (req, res) => {
     });
   }
 };
-
 
 module.exports = {
   getStudents,

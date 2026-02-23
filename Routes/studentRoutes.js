@@ -11,14 +11,18 @@ const {
   deleteStudent,
 } = require("../Controllers/studentController");
 
-// Ensure uploads folder exists
+// ============================
+// ✅ Upload Folder
+// ============================
 const uploadPath = path.join(__dirname, "../uploads");
 
 if (!fs.existsSync(uploadPath)) {
-  fs.mkdirSync(uploadPath);
+  fs.mkdirSync(uploadPath, { recursive: true });
 }
 
-// Multer Config
+// ============================
+// ✅ Multer Config
+// ============================
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, uploadPath);
@@ -30,6 +34,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({
   storage,
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
   fileFilter: (req, file, cb) => {
     const allowedTypes = /pdf|xlsx|xls/;
     const ext = allowedTypes.test(
@@ -37,10 +42,13 @@ const upload = multer({
     );
 
     if (ext) cb(null, true);
-    else cb(new Error("Only PDF or Excel allowed"));
+    else cb(new Error("Only PDF or Excel files allowed"));
   },
 });
 
+// ============================
+// ✅ Routes
+// ============================
 router
   .route("/")
   .get(getStudents)
