@@ -8,14 +8,15 @@ require("dotenv").config();
 const app = express();
 
 // ============================
-// ✅ CORS CONFIG (Production Safe)
+// ✅ CORS CONFIG (FIXED)
 // ============================
 app.use(
   cors({
     origin: [
       "http://localhost:3000",
-      "https://suryasekar.netlify.app/", // 🔥 CHANGE THIS
+      "https://suryasekar.netlify.app" // ❌ NO trailing slash
     ],
+    methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   })
 );
@@ -34,12 +35,12 @@ if (!fs.existsSync(uploadPath)) {
 app.use("/uploads", express.static(uploadPath));
 
 // ============================
-// ✅ MongoDB Connection (Improved)
+// ✅ MongoDB Connection
 // ============================
 const connectDB = async () => {
   try {
     if (!process.env.MONGO_URI) {
-      throw new Error("MONGO_URI not defined in environment variables");
+      throw new Error("MONGO_URI not defined");
     }
 
     await mongoose.connect(process.env.MONGO_URI);
@@ -74,6 +75,6 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () =>
-  console.log(`🚀 Server running on port ${PORT}`)
-);
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+});
