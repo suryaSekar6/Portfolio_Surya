@@ -13,7 +13,7 @@ const app = express();
 app.use(
   cors({
     origin: [
-      "http://localhost:3000",
+      "http://localhost:5173",
       "https://suryasekar.netlify.app" // ❌ NO trailing slash
     ],
     methods: ["GET", "POST", "PUT", "DELETE"],
